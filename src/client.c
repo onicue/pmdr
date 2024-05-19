@@ -26,7 +26,7 @@ void start_client(int argc, char** argv){
       }
   }
   if(connect(client.sockfd, (struct sockaddr *)&client.address, sizeof(client.address)) < 0){
-      error_handling("Error while connecting to server");
+      error_handling("while connecting to server");
   }
   send_message(client.sockfd, buffer);
   recv_message(client.sockfd, buffer);

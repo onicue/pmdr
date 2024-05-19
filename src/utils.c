@@ -8,7 +8,7 @@
 int create_socket(){
   int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
   if(sockfd < 0){
-    perror("Error while creating socket");
+    perror("while creating socket");
     exit(EXIT_FAILURE);
   }
   return sockfd;
@@ -22,20 +22,24 @@ struct sockaddr_un create_sockaddr(){
 }
 
 void error_handling(const char* error_msg){
-  perror(error_msg);
+  char error[strlen(error_msg) + 7];
+  strcpy(error, "Error ");
+  strcat(error, error_msg);
+
+  perror(error);
   exit(EXIT_FAILURE);
 }
 
 void send_message(int sockfd, char* message){
   if(send(sockfd, message, strlen(message) , 0) < 0){
-    error_handling("Error while sending message");
+    error_handling("while sending message");
   }
 }
 
 void recv_message(int sockfd, char *buffer){
   size_t bytes_recived = recv(sockfd, buffer, BUFFER_SIZE - 1, 0);
   if(bytes_recived < 0){
-    error_handling("Error while receiving message");
+    error_handling("while receiving message");
   }
   buffer[bytes_recived] = '\0';
 }
@@ -60,7 +64,7 @@ td_array separate_str(char *str) {
 
   array.lines = malloc(count * sizeof(char *));
   if (!array.lines){
-    error_handling("maloc in function separate_str");
+    error_handling("malloc in function separate_str");
   }
   array.len = count;
 
@@ -91,7 +95,7 @@ void free_td_array(td_array *array) {
 void remove_element(td_array* array, int index){
   int size = array->len;
   if(index < 0 || index >= size){
-    error_handling("Error incorrect index");
+    error_handling("incorrect index");
     return;
   }
 

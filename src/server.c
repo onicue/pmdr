@@ -26,7 +26,7 @@ char status[10] = "work";
 
 void init_mutex(){
   if(pthread_mutex_init(&mutex, NULL) != 0){
-    error_handling("Error while init mutex");
+    error_handling("while init mutex");
   }
 }
 
@@ -35,11 +35,11 @@ void init_server(){
   server.address = create_sockaddr();
   server.addrlen = sizeof(server.address);
   if(bind(server.sockfd, (struct sockaddr*)&server.address, sizeof(server.address)) < 0){
-    error_handling("Error while binding socket");
+    error_handling("while binding socket");
   }
 
   if(listen(server.sockfd, 10) < 0){
-    error_handling("Error while listening on socket");
+    error_handling("while listening on socket");
   }
   init_mutex();
 }
@@ -130,7 +130,7 @@ void method_handling(td_array* array){
   } else if (!strcmp(method, "stop") && argc == 1) {
     lock_flag = true;
   } else {
-    perror("Error incorrect arguments");
+    perror("incorrect arguments");
   }
 }
 
@@ -144,7 +144,7 @@ void start_server(){
   char buffer[BUFFER_SIZE];
   while (true) {
     if((client_socket = accept(server.sockfd, (struct sockaddr*)&server.address, &server.addrlen)) < 0){
-      error_handling("Error while accepting");
+      error_handling("while accepting");
     }
     recv_message(client_socket, buffer);
     message_handling(buffer);
