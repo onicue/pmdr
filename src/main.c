@@ -14,18 +14,25 @@ void sigint_handler(int signo){
 }
 
 int main(int argc, char** argv){
-  if(argc == 1){
-    if (access(SOCKET_PATH, F_OK) == 0)
+  int ac = access(SOCKET_PATH, F_OK);
+
+  if(argc == 1 ||
+    (argc >= 2 && argc < 5 && !strcmp(argv[1], "start")) && ac!=0)
+  {
+    if (ac == 0)
       error_handling("socket alredy exist");
     if (signal(SIGINT, sigint_handler) == SIG_ERR)
       error_handling("signal handler installation failed");
     init_server();
+    if (argc > 1){
+      start_reverse_timer(argc - 1, argv+1);
+    }
     printf("Server alredy started\n");
     start_server();
     close_server();
   } else {
-    if (access(SOCKET_PATH, F_OK) == -1)
-      error_handling("socket alredy exist");
+    if (ac == -1)
+      error_handling("socket don't exist");
     create_client();
     start_client( argc, argv);
     close_client();

@@ -11,8 +11,8 @@
 #define true 1
 #define false 0
 
-int default_work_time = 10;//1500; //sec
-int default_rest_time = 10;//300; //sec
+int default_work_time = DEFAULT_WORK_TIME; //sec
+int default_rest_time = DEFAULT_REST_TIME; //sec
 atomic_uint seconds;
 
 static pthread_mutex_t mutex;
@@ -23,6 +23,12 @@ pthread_t thread_id;
 sockInfo server;
 int client_socket;
 char status[10] = "work";
+
+void init_mutex(){
+  if(pthread_mutex_init(&mutex, NULL) != 0){
+    error_handling("Error while init mutex");
+  }
+}
 
 void init_server(){
   server.sockfd = create_socket();
@@ -35,6 +41,7 @@ void init_server(){
   if(listen(server.sockfd, 10) < 0){
     error_handling("Error while listening on socket");
   }
+  init_mutex();
 }
 
 void close_server(){
@@ -68,12 +75,35 @@ void *reverse_timer(void* arg){
   return NULL;
 }
 
+void set_default_rest_time(int time){
+  if(time > 0){
+    default_rest_time = time;
+  }
+}
+
+
+void set_default_work_time(int time){
+  if(time > 0){
+    default_work_time = time;
+  }
+}
+
 void start_thread_loop(int work_time, int rest_time){
-  if(rest_time)
-    default_rest_time = rest_time;
-  if(work_time)
-    default_work_time = work_time;
+  set_default_work_time(work_time);
+  set_default_rest_time(rest_time);
   pthread_create(&thread_id, NULL, reverse_timer, NULL);
+}
+
+void start_reverse_timer(int argc, char** argv){
+  if(argc == 1) {
+    start_thread_loop(0, 0);
+  } else if ( argc == 2){
+    start_thread_loop(atoi(argv[1]), 0);
+  } else if (argc == 3){
+    start_thread_loop(atoi(argv[1]), atoi(argv[2]));
+  } else {
+    perror("too many arguments in start");
+  }
 }
 
 void send_time(){
@@ -87,12 +117,7 @@ void method_handling(td_array* array){
   char* method = array->lines[0];
 
   if(!strcmp(method, "start")){
-    if(argc == 1){
-      start_thread_loop(0,0);
-    } else if (argc == 2){
-      start_thread_loop(atoi(array->lines[1]), 0);
-    } else if (argc == 3)
-      start_thread_loop(atoi(array->lines[1]), atoi(array->lines[2]));
+    start_reverse_timer(argc, array->lines);
   } else if (!strcmp(method, "get") && argc == 1){
     send_time();
   } else if (!strcmp(method, "status") && argc == 1) {
@@ -115,15 +140,8 @@ void message_handling(char* message){
   free_td_array(&array);
 }
 
-void init_mutex(){
-  if(pthread_mutex_init(&mutex, NULL) != 0){
-    error_handling("Error while init mutex");
-  }
-}
-
 void start_server(){
   char buffer[BUFFER_SIZE];
-  init_mutex();
   while (true) {
     if((client_socket = accept(server.sockfd, (struct sockaddr*)&server.address, &server.addrlen)) < 0){
       error_handling("Error while accepting");

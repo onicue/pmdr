@@ -9,6 +9,7 @@
 
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <string.h>
 
 typedef struct{
   struct sockaddr_un address;
