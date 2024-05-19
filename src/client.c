@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <string.h>
 
 sockInfo client;
 
@@ -15,20 +16,21 @@ void close_client(){
   close(client.sockfd);
 }
 
-void start_client(char** argv){
-  char buffer[256];
+
+void start_client(int argc, char** argv){
+  char buffer[BUFFER_SIZE] = "";
+  for(int i = 1; i < argc; i++){
+      strcat(buffer, argv[i]);
+      if(i < argc - 1){
+          strcat(buffer, " ");
+      }
+  }
   if(connect(client.sockfd, (struct sockaddr *)&client.address, sizeof(client.address)) < 0){
-    error_handling("Error while connecting to server");
+      error_handling("Error while connecting to server");
   }
-
-  if(send(client.sockfd, argv[0], strlen(argv[0]), 0) < 0){
-    error_handling("Error while sending message");
+  send_message(client.sockfd, buffer);
+  recv_message(client.sockfd, buffer);
+  if(strlen(buffer)){
+    printf("%s", buffer);
   }
-
-  int bytes_received = recv(client.sockfd, buffer, sizeof(buffer),0);
-  if(bytes_received < 0){
-    error_handling("Error while receiving data");
-  }
-  buffer[bytes_received] = '\0';
-  printf("%s\n", buffer);
 }
